@@ -77,6 +77,25 @@ UserRouter.post('/login',RateLimit, async(req, res)=> {
   }
 });
 
+//user profile
+UserRouter.get('/profile/:id' ,async(req, res)=> {
+  const{id}=req.params;
+
+  try {
+    if(!id){
+      return res.status(400).send({status:"failure",msg:"please provide user id!"})
+    }
+    // Hash the password using bcrypt
+
+   let user= await UserModel.findOne({_id:id});//find user details
+   if(!user){
+    return res.status(400).send({status:"failure",msg:"User Not Exist"})//if user not exist
+   }
+   return res.status(201).send({status:"success",msg:{name:user.name,email:user.email}})//send user name and mail
+  } catch (error) {
+    return res.status(400).send({status:"failure",msg:error.message})
+  }
+});
 //after 24 hours delete the email of particular user so that object not become too large
  
 module.exports = UserRouter;
