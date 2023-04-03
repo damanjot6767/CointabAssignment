@@ -71,7 +71,7 @@ UserRouter.post('/login',RateLimit, async(req, res)=> {
       return res.status(400).send({status:"failure",msg:`Incorrect Email or password! your ${5-failedAttemps[email].count} Attempt is left.`})
      }
      failedAttemps[email] = { count: 0, lastAttempt: null };
-    return res.status(201).send({status:"success",msg:"user login successfully!"})
+    return res.status(201).send({status:"success",msg:"user login successfully!",id:userExist._id})
   } catch (error) {
     return res.status(400).send({status:"failure",msg:error.message})
   }
