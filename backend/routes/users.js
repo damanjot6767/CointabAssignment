@@ -10,9 +10,13 @@ const RateLimit = (req, res, next) => {
   const email = req.body.email;
   const attempts = failedAttemps[email];
   
-  if (attempts && attempts.count >= 5 && Date.now() - attempts.lastAttempt < 3600000) {
+  if (attempts && attempts.count >= 5) {
     let diffTime = 86400000 - (Date.now() - attempts.lastAttempt);
     diffTime=diffTime/1000;
+    if(diffTime<=0){//if difference is less that or equal tp zero then de;lete user from object and reset attempt to login 5 times
+      delete failedAttemps[email];
+      return next()
+    }
     res.status(403).send({status:"failure",msg:`Too many login attempts. Please try again in ${Math.floor(diffTime /3600)} hours ${Math.floor((diffTime%3600)/60)} minutes.`});
     return;
   }
@@ -53,16 +57,18 @@ UserRouter.post('/login',RateLimit, async(req, res)=> {
      if(!userExist){
       return res.status(400).send({status:"failure",msg:"User Not Exist!"})
      }
+
      const verifyPassword = await bcrypt.compare(password, userExist.password);
      if(!verifyPassword){
        // Increment failed login attempts
     if (!failedAttemps[email]) {
       failedAttemps[email] = { count: 1, lastAttempt: Date.now() };
-    } else {
+    } 
+     else {
       failedAttemps[email].count++;
       failedAttemps[email].lastAttempt = Date.now();
     }
-      return res.status(400).send({status:"failure",msg:"Incorrect Email or password!"})
+      return res.status(400).send({status:"failure",msg:`Incorrect Email or password! your ${5-failedAttemps[email].count} Attempt is left.`})
      }
      failedAttemps[email] = { count: 0, lastAttempt: null };
     return res.status(201).send({status:"success",msg:"user login successfully!"})
